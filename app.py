@@ -96,6 +96,7 @@ def parse_path(url):
     print(name , version , file_path)
     return name , version , file_path
 
+@cache.memoize(timeout=3600)
 def get_package(name , version ):
     registry = os.environ.get('REGISTRY' , 'https://registry.npmjs.org')
 
@@ -107,12 +108,21 @@ def get_package(name , version ):
         return jsonify({'msg':'Package not found'}) , 404
     return response.json()
 
+@cache.memoize(timeout=84600)
+def download_package(tarball_url):
+    try :
+        response = requests.get(tarball_url , headers=headers)
+        response.raise_for_status()
+        return response.content
+    except requests.RequestException as e:
+        print(e)
+        return None
 
 def download_unpack_package(tarball_url):
-    response = requests.get(tarball_url , headers=headers)
-    if response.status_code != 200:
-        return jsonify({'msg':'Failed to download package'}) , 404
-    file =  io.BytesIO(response.content)
+    response = download_package(tarball_url)
+    if not response:
+        return None
+    file =  io.BytesIO(response)
     return tarfile.open(fileobj=file , mode='r:gz')
 
 def get_url(data):
@@ -143,12 +153,23 @@ def get_url(data):
         url = 'index.js'
     return url.lstrip('./')
 
-def file_request(tar , path):
-    if not 'package' in path :
+def file_request(tar , path  , name , version ):
+    # print(path)
+
+    if not 'package/' in path :
         path = 'package/' + path
-    print('file')
-    print(path)
+        # print(path)
+    # print('file')
+    # print(path)
+    cached_key = f"{name}@{version}::{path}"
+    file_content = cache.get(cached_key)
+    if file_content :
+        mime_type, _ = mimetypes.guess_type(path)
+        if mime_type:
+            return Response(file_content, mimetype=mime_type, status=200)
+        return Response(file_content, mimetype='text/plain', status=200)
     files = tar.getnames()
+    # print(files)
     if not path in files :
         print('not file')
         return jsonify({'msg':'No Found1'} ), 404
@@ -156,6 +177,7 @@ def file_request(tar , path):
     if file:
         content = file.read()
         # no need for decoding as we send to the web , it could it as we give the mimetype
+        cache.set(cached_key , content , timeout=3600)
         mime_type, _ = mimetypes.guess_type(path)
         if  mime_type:
             return Response(content, mimetype=mime_type, status=200)
@@ -165,7 +187,7 @@ def file_request(tar , path):
         return jsonify({'msg':'No Found2'}) , 404
 
 # entry file 要得到
-def entry_file_request(tar):
+def entry_file_request(tar  , name , version ):
     print('entry')
     path = 'package/package.json'
     file = tar.extractfile(path)
@@ -173,7 +195,7 @@ def entry_file_request(tar):
     data = json.loads(content)
     path = get_url(data)
     print(path)
-    return file_request(tar , path)
+    return file_request(tar , path , name , version)
 
 def directory_request(tar , name ):
     print('directory')
@@ -182,7 +204,7 @@ def directory_request(tar , name ):
         'name' : name ,
         'lists' : lists
     }
-
+    print(lists)
     return render_template('lists.html' , name=name, lists=lists)
     # if mime_type:
     #     return Response('\n'.join(lists), mimetype=mime_type, status=200)
@@ -220,10 +242,10 @@ def proxy(url):
         return directory_request(tarball_data, name)
     # 2.a
     elif not file_path:
-        return entry_file_request(tarball_data)
+        return entry_file_request(tarball_data , name , version )
     # 2.c
     else :
-        return file_request(tarball_data , file_path)
+        return file_request(tarball_data , file_path , name , version )
 #
 # @app.route('/<path:url>/1' , methods=['GET'])
 # def test(url):
@@ -238,3 +260,5 @@ if __name__ == '__main__':
     # flask_caching instead redis no need for ram release
     # totally rebuild for the version logic
     # must get
+
+    # 看了jsdelivr，我感觉他似乎没有下包，要不然为什么那么快的，而且

@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+{% block content %}
+	<h1>{{name}}</h1>
+	<ul>
+		{% for lst in lists %}
+			<li>
+				<a href="{{lst.replace('package/','')}}" style="color: #1dd684">{{ lst }}</a>
+			</li>
+		{% endfor %}
+	</ul>
+{% endblock %}
+
+{% block js %}
+	<script>
+
+	</script>
+
+
+{% endblock %}

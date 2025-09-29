@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Title</title>
+	<style>
+		body{
+            background-color: #000;
+			color: white;
+		}
+        {% block css %}{% endblock %}
+	</style>
+</head>
+<body>
+<div>
+	<h1 style="color:#fff">shit</h1>
+	{% block content %}{% endblock %}
+</div>
+</body>
+
+<script>
+    {% block js %}{% endblock %}
+</script>
+</html>
+
