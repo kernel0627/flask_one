@@ -1,0 +1,7 @@
+Flask~=3.1.2
+requests
+cachetools
+Flask-Caching
+semver
+packaging
+node-semver
