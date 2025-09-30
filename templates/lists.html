@@ -20,19 +20,15 @@
             </tr>
         </thead>
         <tbody>
-            <!-- 循环我们新生成的、结构化的 files 列表 -->
+
             {% for list in lists %}
             <tr>
-                <!-- 文件名，点击可以打开文件 -->
                 <td>
-                    <!-- 链接地址就是文件的相对路径 -->
                     <a href="/{{ name }}@{{ version }}/{{ list.path }}">{{ list.name }}</a>
                 </td>
-                <!-- 路径信息 -->
                 <td>
                     <span class="text-muted">{{ list.path }}</span>
                 </td>
-                <!-- 文件大小，右对齐 -->
                 <td class="text-end">
                     <code>{{ list.size }}</code>
                 </td>
