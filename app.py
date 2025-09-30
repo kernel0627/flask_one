@@ -197,15 +197,26 @@ def entry_file_request(tar  , name , version ):
     print(path)
     return file_request(tar , path , name , version)
 
-def directory_request(tar , name ):
+def directory_request(tar , name , version ):
     print('directory')
-    lists = tar.getnames()
-    context = {
-        'name' : name ,
-        'lists' : lists
-    }
-    print(lists)
-    return render_template('lists.html' , name=name, lists=lists)
+    # lists = tar.getnames()
+    lists = []
+    for member in tar.getmembers():
+        if member.isfile():
+            clean_path = member.name
+            file_name = os.path.basename(clean_path)
+            lists.append({
+                'path': clean_path,
+                'name': file_name,
+                'size': member.size
+            })
+    lists.sort(key=lambda x : x['path'])
+    # context = {
+    #     'name' : name ,
+    #     'lists' : lists
+    # }
+    # print(lists)
+    return render_template('lists.html' ,version = version ,  name=name, lists=lists)
     # if mime_type:
     #     return Response('\n'.join(lists), mimetype=mime_type, status=200)
     # return Response('\n'.join(lists) , mimetype='text/plain' , status=200)
@@ -239,7 +250,7 @@ def proxy(url):
     # 2.b
     if url.endswith('/'):
         name = name + '@' + version
-        return directory_request(tarball_data, name)
+        return directory_request(tarball_data, name , version)
     # 2.a
     elif not file_path:
         return entry_file_request(tarball_data , name , version )
@@ -260,5 +271,3 @@ if __name__ == '__main__':
     # flask_caching instead redis no need for ram release
     # totally rebuild for the version logic
     # must get
-
-    # 看了jsdelivr，我感觉他似乎没有下包，要不然为什么那么快的，而且

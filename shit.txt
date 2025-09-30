@@ -1,5 +1,5 @@
 {  name : vue }
-{  version : 3.0.11 }
+{  version : 3.0.3 }
 {  description : vue }
 {  main : index.js }
 {  module : dist/vue.runtime.esm-bundler.js }
@@ -14,5 +14,5 @@
 {  license : MIT }
 {  bugs : {'url': 'https://github.com/vuejs/vue-next/issues'} }
 {  homepage : https://github.com/vuejs/vue-next/tree/master/packages/vue#readme }
-{  dependencies : {'@vue/shared': '3.0.11', '@vue/compiler-dom': '3.0.11', '@vue/runtime-dom': '3.0.11'} }
+{  dependencies : {'@vue/shared': '3.0.3', '@vue/compiler-dom': '3.0.3', '@vue/runtime-dom': '3.0.3'} }
 {  devDependencies : {'lodash': '^4.17.15', 'marked': '^0.7.0', 'todomvc-app-css': '^2.3.0'} }

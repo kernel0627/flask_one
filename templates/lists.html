@@ -1,19 +1,45 @@
+{# lists.html#}
 {% extends 'layout.html' %}
+{% block css %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+{% endblock %}
+
+{% block title  %}{{ name }}@{{ version }}{% endblock %}
+
 {% block content %}
-	<h1>{{name}}</h1>
-	<ul>
-		{% for lst in lists %}
-			<li>
-				<a href="{{lst.replace('package/','')}}" style="color: #1dd684">{{ lst }}</a>
-			</li>
-		{% endfor %}
-	</ul>
+	<div class="container mt-4">
+    <h3 class="mb-1">{{ name }}</h3>
+    <p class="text-muted mb-3">Version: {{ version }}</p>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">文件名 (File)</th>
+                <th scope="col">完整路径 (Path)</th>
+                <th scope="col" class="text-end">大小 (Size)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 循环我们新生成的、结构化的 files 列表 -->
+            {% for list in lists %}
+            <tr>
+                <!-- 文件名，点击可以打开文件 -->
+                <td>
+                    <!-- 链接地址就是文件的相对路径 -->
+                    <a href="/{{ name }}@{{ version }}/{{ list.path }}">{{ list.name }}</a>
+                </td>
+                <!-- 路径信息 -->
+                <td>
+                    <span class="text-muted">{{ list.path }}</span>
+                </td>
+                <!-- 文件大小，右对齐 -->
+                <td class="text-end">
+                    <code>{{ list.size }}</code>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
 
-{% block js %}
-	<script>
-
-	</script>
-
-
-{% endblock %}

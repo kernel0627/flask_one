@@ -1,21 +1,22 @@
+{# layout.html #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Title</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{% block title  %}NPM Package Viewer {% endblock %}</title>
+	{% block css %}
+        {% endblock %}
 	<style>
 		body{
-            background-color: #000;
-			color: white;
+            background-color: #fff;
+			color: #000;
 		}
-        {% block css %}{% endblock %}
 	</style>
+
 </head>
 <body>
-<div>
-	<h1 style="color:#fff">shit</h1>
 	{% block content %}{% endblock %}
-</div>
 </body>
 
 <script>
