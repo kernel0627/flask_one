@@ -17,8 +17,6 @@ config = {
 app.config.from_mapping(config)
 cache = Cache(app)
 
-# https://registry.npmjs.org/alpha
-
 def get_full_version(name):
     registry = os.environ.get('REGISTRY' , 'https://registry.npmjs.org')
     url = f'{registry}/{name}'
@@ -40,29 +38,7 @@ def  handle_version(name, version):
         print(resolved)
         return resolved
     all_versions = data.get('versions' , {}).keys()
-    # print(all_versions)
 
-
-
-    # # 我这儿semver没有satisfies我得自己造个轮子
-    # 然后我发现很搞笑的是node-semver就有，根本不需要，笑死
-    # matching_versions = []
-    # for v in all_versions:
-    #     # print(version)
-    #     try:
-    #         parsed_version = semver.VersionInfo.parse(v)
-    #         print(parsed_version)
-    #         if not parsed_version.prerelease:
-    #             if semver.satisfies(v, version):
-    #                 matching_versions.append(v)
-    #     except ValueError:
-    #         continue
-    #
-    # print(matching_versions)
-    # if matching_versions:
-    #         print('matching')
-    #         best_version = max(matching_versions)
-    #         return best_version
 
     best_version = semver.max_satisfying(all_versions, version, loose=True)
 
@@ -70,7 +46,6 @@ def  handle_version(name, version):
         print(best_version)
         return best_version
 
-    print('no match')
     return version
 
 def parse_path(url):
@@ -90,7 +65,6 @@ def parse_path(url):
         name = info_parts[0]
         version = 'latest'
 
-    # 判断是否需要处理版本号
     if  version in ['latest' , 'next' , 'beta' , 'alpha'] or version.startswith(('^' , '~' , '>' , '<' , '=')) or ' ' in version or '*' in version:
         version = handle_version(name, version)
     print(name , version , file_path)
@@ -115,7 +89,6 @@ def download_package(tarball_url):
         response.raise_for_status()
         return response.content
     except requests.RequestException as e:
-        print(e)
         return None
 
 def download_unpack_package(tarball_url):
@@ -154,13 +127,9 @@ def get_url(data):
     return url.lstrip('./')
 
 def file_request(tar , path  , name , version ):
-    # print(path)
 
     if not 'package/' in path :
         path = 'package/' + path
-        # print(path)
-    # print('file')
-    # print(path)
     cached_key = f"{name}@{version}::{path}"
     file_content = cache.get(cached_key)
     if file_content :
@@ -169,14 +138,12 @@ def file_request(tar , path  , name , version ):
             return Response(file_content, mimetype=mime_type, status=200)
         return Response(file_content, mimetype='text/plain', status=200)
     files = tar.getnames()
-    # print(files)
     if not path in files :
         print('not file')
         return jsonify({'msg':'No Found1'} ), 404
     file = tar.extractfile(path)
     if file:
         content = file.read()
-        # no need for decoding as we send to the web , it could it as we give the mimetype
         cache.set(cached_key , content , timeout=3600)
         mime_type, _ = mimetypes.guess_type(path)
         if  mime_type:
@@ -186,7 +153,6 @@ def file_request(tar , path  , name , version ):
         print(f" {path} 未找到")
         return jsonify({'msg':'No Found2'}) , 404
 
-# entry file 要得到
 def entry_file_request(tar  , name , version ):
     print('entry')
     path = 'package/package.json'
@@ -206,9 +172,6 @@ def directory_request(tar , name ):
     }
     print(lists)
     return render_template('lists.html' , name=name, lists=lists)
-    # if mime_type:
-    #     return Response('\n'.join(lists), mimetype=mime_type, status=200)
-    # return Response('\n'.join(lists) , mimetype='text/plain' , status=200)
 
 
 @app.route('/')
@@ -223,8 +186,6 @@ def proxy(url):
     data = get_package(name , version)
     if not data :
         return 'Package not found' , 404
-    # if not isinstance(data, dict):
-    #     return Response(data, mimetype='text/plain' , status=200)
     print(type(data['dist']))
     if (type(data['dist']) == tuple) :
         return Response('Package not found', 404)
@@ -247,18 +208,7 @@ def proxy(url):
     else :
         return file_request(tarball_data , file_path , name , version )
 #
-# @app.route('/<path:url>/1' , methods=['GET'])
-# def test(url):
-#     return render_template('layout.html' , url =url)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-    # redis & zip & about ram release
-    # & special release kind like /vue/ and /vue@^3.2.0/ to tackle
-    #change
-    # flask_caching instead redis no need for ram release
-    # totally rebuild for the version logic
-    # must get
-
-    # 看了jsdelivr，我感觉他似乎没有下包，要不然为什么那么快的，而且
