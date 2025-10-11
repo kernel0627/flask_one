@@ -14,9 +14,11 @@ config = {
     "CACHE_DIR" : os.path.join(os.path.abspath(os.path.dirname(__file__)),"cache"),
     "CACHE_DEFAULT_TIMEOUT": 3600
 }
+
 app.config.from_mapping(config)
 cache = Cache(app)
 
+@cache.memoize(timeout=3600)
 def get_full_version(name):
     registry = os.environ.get('REGISTRY' , 'https://registry.npmjs.org')
     url = f'{registry}/{name}'
